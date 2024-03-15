@@ -2,26 +2,34 @@
 
 import {
   MotionValue,
-  animate,
   motion,
   useMotionValue,
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   let [count, setCount] = useState(1);
+  let [rerender, setRerender] = useState(0);
   let [isShowing, setIsShowing] = useState(false);
 
   return (
     <div className="h-screen flex flex-col gap-8 justify-center items-center">
-      <button
-        onClick={() => setIsShowing(!isShowing)}
-        className="bg-gray-300 rounded px-3 py-1 text-sm"
-      >
-        Toggle
-      </button>
+      <div className="flex gap-4">
+        <button
+          onClick={() => setIsShowing(!isShowing)}
+          className="bg-gray-300 rounded px-3 py-1 text-sm"
+        >
+          Toggle
+        </button>
+        <button
+          onClick={() => setRerender(rerender + 1)}
+          className="bg-gray-300 rounded px-3 py-1 text-sm"
+        >
+          Force re-render ({rerender})
+        </button>
+      </div>
 
       <div className="h-20">
         {isShowing && (
@@ -43,16 +51,15 @@ export default function Home() {
 
 function AnimatedBubble({ value }: { value: number }) {
   let scale = useMotionValue(0.5);
+  let [lastValue, setLastValue] = useState(value);
+  let valueDidChange = value !== lastValue;
 
-  useEffect(() => {
-    // @ts-ignore
-    animate(scale, [null, 1.1, 1], { duration: 0.4 });
-  }, [scale, value]);
+  useTimeout(() => setLastValue(value), valueDidChange ? 200 : null);
 
   return (
     <motion.span
       initial={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      animate={{ scale: valueDidChange ? 1.1 : 1, opacity: 1 }}
       style={{ scale }}
       className="inline-block bg-amber-500 rounded-full text-white font-medium px-2 justify-center"
     >
@@ -118,4 +125,25 @@ function Number({ mv, number }: { mv: MotionValue; number: number }) {
       {number}
     </motion.span>
   );
+}
+
+function useTimeout(callback: () => void, delay: number | null) {
+  const timeoutRef = useRef<number>();
+  const savedCallback = useRef(callback);
+
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    const tick = () => savedCallback.current();
+
+    if (typeof delay === "number") {
+      timeoutRef.current = window.setTimeout(tick, delay);
+
+      return () => window.clearTimeout(timeoutRef.current);
+    }
+  }, [delay]);
+
+  return timeoutRef;
 }
