@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  MotionValue,
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { MotionValue, motion, useSpring, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
@@ -50,7 +44,6 @@ export default function Home() {
 }
 
 function AnimatedBubble({ value }: { value: number }) {
-  let scale = useMotionValue(0.5);
   let [lastValue, setLastValue] = useState(value);
   let valueDidChange = value !== lastValue;
 
@@ -60,7 +53,6 @@ function AnimatedBubble({ value }: { value: number }) {
     <motion.span
       initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: valueDidChange ? 1.1 : 1, opacity: 1 }}
-      style={{ scale }}
       className="inline-block bg-amber-500 rounded-full text-white font-medium px-2 justify-center"
     >
       <Counter value={value} />
